@@ -1,28 +1,71 @@
-# Ray Tracing
+# ray-tracing
 
-Repositório base em Python para o projeto da disciplina de **Processamento Gráfico**.
 
-Este repositório fornece um ponto de partida para a implementação de um sistema de Ray Tracing. Inclui um sistema de leitura de arquivos `.obj` e `.mtl` para facilitar a criação de casos de testes **a partir da segunda entrega**.
 
-## Organização do Projeto
+Explicação sobre o que cada parte dos códigos atual faz:
 
-A implementação do projeto é livre para a decisão do grupo, abrangendo:
-- Organização do código;
-- Estratégias e métodos de implementação;
-- Contanto que sigam a **teoria ensinada em sala de aula**.
+### "camera.py"
+- Importações: Importa classes e funções necessárias para a operação da câmera.
+- Classe Camera:
+  - "__init__" Method: Inicializa a câmera com posição, alvo, distância da tela, altura e largura da tela, e vetor para cima.
+  - "get_target_vector" Method: Calcula o vetor direcionado do ponto de posição da câmera até o ponto de alvo.
+  - "set_screen_heigth" e "set_screen_width" Methods: Definem a altura e largura da tela, ajustando para valores mínimos de 1 se necessário.
+  - "set_vector_up" Method: Define e normaliza o vetor para cima da câmera.
+  - "put_ray_in_start_position" Method: Posiciona o raio na posição inicial, ajustando-o para o topo esquerdo da tela.
+  - "start_ray_cast" Method: Faz o raycasting para todos os pixels da tela, verificando interseções com objetos e colorindo os pixels com base nas colisões.
+  - "verify_intersections" Method: Verifica se o raio colide com objetos na cena e retorna um dicionário de interseções.
+  - "get_closest_object" Method: Determina qual objeto está mais próximo do ponto de origem do raio.
 
-## Entregas
+### "image.py"
+- Função "generate_image":
+  - Cria e salva uma imagem no formato PPM com base em uma matriz de cores.
+  - Converte o arquivo PPM para JPG usando a biblioteca PIL.
+- Função "ppm_to_jpg": 
+  - Abre um arquivo PPM e o salva como JPG.
 
-Informações detalhadas sobre as entregas estão disponíveis no **[Notion](https://alabaster-rodent-725.notion.site/Processamento-Gr-fico-156f7123bb6a80d3a4fbf351828ae42e)**. Em resumo:
-- São **4 entregas**, cada uma acompanhada de vídeos explicativos sobre a teoria;
-- Os vídeos podem ser acessados através do link no Notion.
+### "main.py"
+- Importações: Importa módulos necessários.
+- Inicialização da Câmera: Define a largura e altura da imagem e inicializa a câmera.
+- Inicialização do Plano: Cria um plano com um ponto, vetor normal e material.
+- Funções de Geração de Imagens: Cada função gera uma imagem com diferentes configurações de esferas e planos na cena:
+  - gerar_imagem_longe_da_camera
+  - gerar_imagem_perto_da_camera
+  - gerar_imagem_esquerda_e_acima
+  - gerar_imagem_direita_e_acima
+  - gerar_imagem_dois_circulos
+  - gerar_imagem_planos
 
-### **Avaliação**
-A avaliação de cada entrega incluirá:
-1. Apresentação demonstrando o funcionamento do código.
-2. Explicação teórica individual de cada integrante.
+### "mesh.py"
+- Classe Material:
+  - Representa as propriedades físicas de um material, como cor, coeficiente especular, lambertiano, ambiental, tipo de material, índice de refração e componente transmissiva.
 
-## Requisitos
+### "object.py"
+- Classe Abstrata Object:
+  - Define métodos abstratos "intersects" e "get_color" que devem ser implementados por subclasses.
 
-Certifique-se de ter os seguintes pré-requisitos configurados:
-- 1. **Python 3.8 ou superior** - Faça o download em [python.org](https://www.python.org/).
+### "plane.py"
+- Classe Plane:
+  - Representa um plano definido por um ponto, vetor normal e material.
+  - Métodos para inicialização, representação textual, cálculo de interseções com um raio, normal da superfície e cor do material.
+
+### "point.py"
+- Classe Point:
+  - Representa um ponto no espaço 3D com coordenadas x, y, z.
+  - Métodos para operações aritméticas, cálculo de distância, ponto médio, movimento em direção a outro ponto, cálculo de coordenadas baricêntricas e determinação do ponto mais próximo em uma lista.
+
+### "point_light.py"
+- Classe Light:
+  - Representa uma fonte de luz com posição e cor.
+  - Método para retornar a posição da fonte de luz.
+
+### "ray.py"
+- Classe Ray:
+  - Representa um raio com origem e direção.
+  - Métodos para inicialização, obtenção de um ponto por parâmetro ou distância, inversão da direção do raio, configuração e alteração da direção, e representação textual.
+
+### "sphere.py"
+- Classe Sphere:
+  - Representa uma esfera com centro, raio e cor.
+  - Método "intersects" para calcular se um raio intersecta a esfera e retornar o ponto de interseção.
+
+Essa é uma visão geral das funcionalidades e métodos principais em cada arquivo do projeto. 
