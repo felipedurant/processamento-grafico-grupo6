@@ -1,6 +1,8 @@
 # Ray Tracing
 
-### Importante para executar o projeto
+## Observações Iniciais
+
+### Para a Execução do Projeto
 - Download da lib Pillow (pip install Pillow)
 
 ## Arquivos do Projeto
