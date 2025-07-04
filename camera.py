@@ -1,5 +1,6 @@
 from vector import *
 from point import *
+from object import *
 from ray import *
 from math import *
 
@@ -125,6 +126,7 @@ class Camera:
         Returns:
         matriz ([[(r, g, b)]]): Matriz com as cores dos pixels da tela.
         """
+        objects = self.clean_objects_list(objects)
         screen_matrix = []
         self.put_ray_in_start_position()
         start_direction : Vector = self.ray.get_direction()
@@ -134,12 +136,21 @@ class Camera:
                 self.ray.set_direction((start_direction + (x * self.vec_qx) + (y * self.vec_qy)))
                 self.current_pixel = [x, y]
                 intercections = self.verify_intersections(objects)
-                closest = self.get_closest_object(self.position, intercections)
+                closest = self.get_closest_object(intercections)
                 if closest != None:
-                    screen_matrix[y].append(closest.get_color())
+                    screen_matrix[y].append(intercections[closest]["color"])
                 else: 
                     screen_matrix[y].append(None)
         return screen_matrix
+
+    @staticmethod
+    def clean_objects_list(objects_list : list):
+        clean_list = []
+        for o in objects_list:
+            if isinstance(o, Object):
+                clean_list.append(o)
+        return clean_list
+
 
     def verify_intersections(self, objects : list):
         """
@@ -150,27 +161,27 @@ class Camera:
         objects (list): Lista de objetos que podem (ou não) colidir com o raio.
 
         Returns:
-        dict: Dicionario que contem como chave os objetos que colidiram com o raio e como valores os pontos de colisão.
+        dict: Dicionario que contem como chave os objetos que colidiram com o raio e como valores as informações da colisão.
         """
-        intersection_point = None
+        intersection_info = None
         intersections_dict = {}
         for obj in objects:
-            intersection_point = obj.intersects(self.ray)
-            if intersection_point != None:
-                intersections_dict[obj] = intersection_point
+            intersection_info = obj.intersects(self.ray)
+            if intersection_info != None:
+                intersections_dict[obj] = intersection_info
         return intersections_dict
     
     @staticmethod
-    def get_closest_object(origin_point : Point, intercetion_dict : dict):
+    def get_closest_object(intercetion_dict : dict):
         """
-        Determina quais dos objetos está mais proximo do ponto de origem. 
+        Determina quais dos objetos está mais proximo do ponto de origem, a partir do parametro t
+        que determina que ponto do raio bateu no objeto, o que tiver o menor t é o mais proximo.
         
         Args:
-        origin_point (Point): Ponto de origem do raio que passou pelos objetos.
-        intercetion_dict (dict): Dicionario que contem os objetos e os pontos que colidiram com o raio.
+        intercetion_dict (dict): Dicionario que contem os objetos e as informações de colisão.
 
         Returns:
-        Objeto que contem o ponto mais proximo do ponto de origem.
+        Objeto mais proximo (com o menor t).
         """
         if len(intercetion_dict.keys()) > 0:
             closest_obj = None
@@ -178,12 +189,11 @@ class Camera:
             for k in intercetion_dict.keys():
                 if closest_obj == None:
                     closest_obj = k
-                    distance = origin_point.distance_to(intercetion_dict[k])
+                    distance = intercetion_dict[k]["t"]
                 else:
-                    point = intercetion_dict[k]
-                    if distance > origin_point.distance_to(point):
+                    if distance > intercetion_dict[k]["t"]:
                         closest_obj = k
-                        distance = origin_point.distance_to(point)
+                        distance = intercetion_dict[k]["t"]
             return closest_obj
         else:
             return None

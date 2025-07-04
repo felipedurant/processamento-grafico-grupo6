@@ -1,5 +1,6 @@
 import abc
 
+
 class Object(abc.ABC):
     def __init__(self):
         self.parameter_min = 0.0
