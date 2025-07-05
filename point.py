@@ -2,7 +2,7 @@ from math import sqrt, fabs
 from vector import Vector
 
 class Point:
-    def __init__(self, x=0, y=0, z=0):
+    def __init__(self, x=0.0, y=0.0, z=0.0):
         """ Inicializa um ponto com coordenadas x, y, e z. """
         self.x = x
         self.y = y
@@ -46,9 +46,9 @@ class Point:
         """ Calcula as coordenadas baricentricas de um ponto p em relacao ao triangulo formado por p0, p1, e p2. """
         
         #cria vetores que representam os lados do triangulo e a posicao relativa do ponto p em relacao ao vertice p0
-        v0 = Vector(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z)  #vetor do ponto p0 ao ponto p1
-        v1 = Vector(p2.x - p0.x, p2.y - p0.y, p2.z - p0.z)  #vetor do ponto p0 ao ponto p2
-        v2 = Vector(p.x - p0.x, p.y - p0.y, p.z - p0.z)     #vetor do ponto p0 ao ponto p
+        v0 = p1 - p0  #vetor do ponto p0 ao ponto p1
+        v1 = p2 - p0  #vetor do ponto p0 ao ponto p2
+        v2 = p - p0   #vetor do ponto p0 ao ponto p
 
         #calcula os produtos escalares dos vetores, que ajudam a entender como os vetores estao orientados
         d00 = v0.dot_product(v0)  #produto escalar de v0 com ele mesmo (magnitude ao quadrado de v0)
@@ -59,6 +59,10 @@ class Point:
 
         #calcula o denominador da fórmula das coordenadas baricentricas
         denom = d00 * d11 - d01 * d01
+
+        # Caso denom seja = 0
+        if (denom == 0):
+            return None # Retorna None para indicar que as coordenadas não podem ser calculadas
         
         #calcula as coordenadas baricentricas v e w
         v = (d11 * d20 - d01 * d21) / denom  # Coordenada baricentrica para p1
@@ -80,19 +84,27 @@ class Point:
         Returns:
         Point: Ponto mais proximo.
         """
-        if len(points) > 0:
-            closest = None
-            closest_distance = None
-            for p in points:
-                if isinstance(p, Point):
-                    if closest == None:
-                        closest = p
-                        closest_distance = self.distance_to(p)
-                    else:
-                        distance = self.distance_to(p)
-                        if closest_distance > distance:
-                            closest = p
-                            closest_distance = distance
+
+        # 1. Filtra a lista para garantir que só têm objetos Point válidos
+        valid_points = [p for p in points if isinstance(p, Point)]
+
+        # 2. Se a lista de pontos válidos estiver vazia, não há o que fazer
+        if not valid_points:
+            return None
+        
+        # 3. Assume que o primeiro ponto é o mais próximo para começar
+        closest = valid_points[0]
+        closest_distance = self.distance_to(closest)
+
+        # 4. Percorre o RESTANTE da lista (a partir do segundo item)
+        for p in valid_points[1:]:
+            distance = self.distance_to(p)
+            
+            # Agora a comparação é sempre entre dois números, sem risco de 'None'
+            if distance < closest_distance:
+                closest = p
+                closest_distance = distance
+            
         return closest
 
 

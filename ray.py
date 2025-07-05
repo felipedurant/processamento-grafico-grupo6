@@ -1,92 +1,37 @@
-from vector import *
+from vector import Vector
+from point import Point # para o 'origin'
 
-class Ray(object):
+class Ray:
     """
     Classe que representa um raio com uma origem e uma direcao.
+    A direção é SEMPRE normalizada automaticamente.
     """
-    def __init__(self, origin, direction):
-        """
-        Inicializa um Ray com uma origem e uma direcao normalizada.
-        
-        Args:
-        origin (Point): O ponto de origem do raio.
-        direction (Vector): O vetor direcao do raio.
-        """
+    def __init__(self, origin: Point, direction: Vector):
         self.origin = origin
-        self.direction = direction.normalize()
+        # Ao atribuir a direção aqui, o método especial de 'setter' já será chamado
+        self.direction = direction
 
-    def get_point_by_parameter(self, t):
-        """
-        Retorna um ponto neste raio dado um parametro t.
-        
-        Args:
-        t (float): O parametro que define um ponto ao longo do raio atraves da equacao parametrica.
-        
-        Returns:
-        Vector: Ponto no raio correspondente ao parametro t.
-        """
-        return self.origin + self.direction.scale(t)
+    @property
+    def direction(self) -> Vector:
+        """Este é o 'getter'. Ele apenas retorna o valor que está guardado."""
+        return self._direction
 
-    def get_point_by_distance(self, dist):
+    @direction.setter
+    def direction(self, new_vector: Vector):
         """
-        Retorna um ponto neste raio a uma distancia especificada.
-        
-        Args:
-        dist (float): A distancia ao longo do raio a partir da origem.
-        
-        Returns:
-        Vector: Ponto no raio a uma distancia especificada.
+        Este é o 'setter'. Ele é chamado TODA VEZ que se faz 'ray.direction = ...'
+        Aqui a lógica de normalização foi centralizada.
         """
-        return self.origin + self.direction * dist
+        self._direction = new_vector.normalize()
 
-    def get_inverted_ray(self):
+    def point_at(self, distance: float) -> Point:
         """
-        Retorna um novo raio com a direcao invertida.
-        
-        Returns:
-        Ray: Novo raio com direcao invertida.
+        Retorna um ponto no raio a uma 'distance' específica da origem.
+        (Substitui get_point_by_parameter e get_point_by_distance)
         """
-        return Ray(self.origin, self.direction.invert())
+        # self.direction está seguro e normalizado
+        return self.origin + self.direction * distance
 
-    def __repr__(self):
-        """
-        Retorna uma representacao string do objeto Ray.
-        
-        Returns:
-        str: Representacao do Ray no formato 'Ray(origin, direction)'.
-        """
+    def __repr__(self) -> str:
+        """ Retorna uma representacao em string do objeto Ray. """
         return f'Ray({repr(self.origin)}, {repr(self.direction)})'
-    
-    def set_direction(self, vector : Vector):
-        """
-        Determina o valor do vetor de direção como o valor do vetor recebido.
-        
-        Args:
-        vector (Vector): Novo vetor de direção.
-        """
-        self.direction = vector
-        pass
-
-    def get_direction(self):
-        """
-        Returns:
-        Vector: Vetor de direção do Ray.
-        """
-        return self.direction
-    
-    def change_direction(self, vector : Vector):
-        """
-        Muda a direção que o vetor de direção aponta, o movendo de acordo a sua soma com o vetor recebido.
-
-        Args:
-        vector (Vector): Netor que é somado ao vetor de direção. 
-        """
-        self.direction = self.direction + vector
-
-    def get_origin(self):
-        return self.origin
-
-
-### Classe "Ray"
-##  - Propósito: Representa um raio, comumente usado em algoritmos de ray tracing.
-##  - Funções Comuns: Definição de origem e direção do raio, cálculos de interseção com objetos.

@@ -1,32 +1,40 @@
-from PIL import Image
+# Dentro de image.py
+from PIL import Image as PillowImage
 
-def generate_image(color_matrix : list, width : int, heigth : int,
-                   image_path: str, background_color : tuple = (255, 255, 255)):
-    if not ".ppm" in image_path:
-        image_path = image_path + ".ppm"
-    image_file = open(image_path, "w")
-    image_file.write("P3\n")
-    image_file.write(str(width) + " " + str(heigth) + "\n")
-    image_file.write("255\n")
-    for y in range(heigth):
-        for x in range(width):
-            r = background_color[0]
-            g = background_color[1]
-            b = background_color[2]
-            if color_matrix[y] != [] and color_matrix[y][x] != None:
-                r = color_matrix[y][x][0]
-                g = color_matrix[y][x][1]
-                b = color_matrix[y][x][2]
-            image_file.write(str(r) + " " + str(g) + " " + str(b))
-            image_file.write("\n")
-    image_file.close()
-    ppm_to_jpg(image_path)
+class Image:
+    """
+    Representa uma imagem em memória, que pode ser salva em um arquivo.
+    Usa a biblioteca Pillow para manipulação e salvamento.
+    """
+    def __init__(self, width: int, height: int):
+        self.width = width
+        self.height = height
+        # Cria uma imagem preta em memória usando a biblioteca Pillow
+        self.image = PillowImage.new("RGB", (width, height), "black")
+        # Prepara um objeto para permitir a escrita de pixels
+        self.pixels = self.image.load()
 
-def ppm_to_jpg(image_path : str):
-    image = Image.open(image_path)
-    image.save(image_path[:-4] + ".jpg")
+    def set_pixel(self, x: int, y: int, color: tuple):
+        """
+        Define a cor de um pixel específico.
 
+        Args:
+            x (int): Coordenada horizontal do pixel.
+            y (int): Coordenada vertical do pixel.
+            color (tuple): Tupla (R, G, B) com valores de 0 a 255.
+        """
+        # A biblioteca Pillow espera tuplas de inteiros para as cores
+        int_color = (int(color[0]), int(color[1]), int(color[2]))
+        
+        # O acesso aos pixels é feito como [x, y]
+        # A origem (0,0) para Pillow é no canto superior esquerdo, então invertemos o Y
+        self.pixels[x, self.height - 1 - y] = int_color
 
-### Classe "Image"
-##  - Propósito: Manipula a criação e manipulação de imagens, possivelmente gerando a saída final da renderização.
- ## - Funções Comuns: Carregamento, salvamento e manipulação de imagens, armazenamento de dados de pixel.
+    def save(self, path: str):
+        """
+        Salva a imagem em um arquivo. O formato é determinado pela extensão.
+
+        Exemplos de path: "minha_imagem.png", "cena.jpg", "output.bmp"
+        """
+        self.image.save(path)
+        print(f"Imagem salva em: {path}")

@@ -1,96 +1,72 @@
+from point import Point
 from vector import Vector
-from object import *
-import math
+from object import Object
+from material import Material
+from ray import Ray
+from typing import Optional
 
 class Plane(Object):
     """
-    Representa um plano geometrico definido por um ponto e uma normal.
-
-    Atributos:
-        point (Vector): Um ponto no plano.
-        normal (Vector): O vetor normal ao plano.
-        material (Material): Material que define as propriedades de reflexao do plano.
+    Representa um plano geometrico infinito.
     """
-
-    def __init__(self, point, normal, material, one_side = True):
+    def __init__(self, point: Point, normal: Vector, material: Material, one_side=True):
         """
-        Inicializa uma instancia de Plane com um ponto, vetor normal e material.
+        Inicializa o Plano
 
         Args:
-            point (Vector): Um ponto no plano.
-            normal (Vector): O vetor normal ao plano, que deve ser normalizado.
-            material (Material): O material do plano.
-            one_side (bool): determina se so vai detectar colisão de um lado o dos dois lados do plano.
+            point (Point): Um ponto no plano.
+            normal (Vector): O vetor normal ao plano.
+            material (Material): O material que define a aparência do plano.
+            one_side (bool): Se True, o plano só é visível pelo lado para onde a normal aponta.
         """
-        super().__init__()
+        super().__init__(material)
         self.point = point
         self.normal = normal.normalize()
-        self.material = material
         self.one_side = one_side
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Fornece uma representacao em string da instancia de Plane.
-        
-        Returns:
-            str: Representacao textual do plano.
         """
-        return f"Plane({repr(self.point)}, {repr(self.normal)})"
+        return f"Plane(point={self.point}, normal={self.normal})"
 
-    def intersects(self, ray):
+    def intersects(self, ray: Ray) -> float | None:
         """
         Calcula a intersecao do raio com o plano.
 
-        Args:
-            ray (Ray): O raio que pode ou nao intersectar o plano.
-
         Returns:
-        Dicionario com informações da colisão: parametro t e cor.
+            A distância 't' da interseção, ou None se não houver interseção.
         """
-        op = ray.origin - self.point
-        a = op.dot_product(self.normal)
-        b = ray.direction.dot_product(self.normal)
-        if self.one_side:
-            if b < 0:
-                t = -a / b
-                if t > self.parameter_min:
-                    return {"t" : t, "color" : self.get_color()}
-        else:
-            if b < 0 or b > 0:
-                t = -a / b
-                if t > self.parameter_min:
-                    return {"t" : t, "color" : self.get_color()}
+
+        # Denominador da fórmula de interseção raio-plano
+        denom = ray.direction.dot_product(self.normal)
+
+        # Se one_side for True, só consideramos colisões frontais (raio contra a normal)
+        if self.one_side and denom >= 0:
+            return None
+
+        # Evita divisão por zero (raio paralelo ao plano)
+        # Usamos um valor pequeno (epsilon) para segurança com floats
+        if abs(denom) > 1e-6:
+            # Numerador da fórmula de interseção
+            numer = (self.point - ray.origin).dot_product(self.normal)
+            t = numer / denom
+            
+            # Garante que a interseção esteja à frente do raio
+            if t > self.shadow_bias: # 'shadow_bias' herdado de Object
+                return t
+        
         return None
 
-    def surface_norm(self, point=None):
+
+    # Para um plano, a normal é constante, mas para outras formas, ela depende do ponto de interseção.
+    def get_normal_at(self, point: Optional[Point] = None) -> Vector:
         """
-        Retorna o vetor normal do plano.
-
-        Args:
-            point (Vector, optional): Um ponto no plano (nao utilizado neste caso, pois o normal eh constante).
-
-        Returns:
-            Vector: O vetor normal do plano.
+        Retorna o vetor normal na superfície do objeto em um ponto específico.
+        Para um plano, a normal é constante em toda a sua superfície.
         """
         return self.normal
     
-    def get_material_reflection(self):
-        """
-        Retorna o coeficiente de reflexao do material do plano.
-
-        Returns:
-            float: Coeficiente de reflexao do material.
-        """
-        return self.material.reflects
-    
-    def get_color(self):
-        """
-        Retorna a cor base do material do plano.
-
-        Returns:
-            tuple: A cor base (R, G, B) do material.
-        """
-        return self.material.color
 
 
 ### Classe "Plane"

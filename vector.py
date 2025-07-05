@@ -8,7 +8,7 @@ A classe Vector eh projetada para realizar operacoes vetoriais comuns.
 class Vector:
     AIR_REFRACTIVE_INDEX = 1  # Constante de indice de refracao do ar
 
-    def __init__(self, x=0, y=0, z=0):
+    def __init__(self, x=0.0, y=0.0, z=0.0):
         """ Inicializa um vetor com componentes x, y e z. """
         self.x, self.y, self.z = x, y, z
 
@@ -77,6 +77,7 @@ class Vector:
         normalized_normal = normal.normalize()
         return self - 2 * self.dot_product(normalized_normal) * normalized_normal
 
+    # Método estático, não usa self
     def clamp_value(self, value, min_value, max_value):
         """ Restringe um valor entre um minimo e um maximo. """
         return max(min_value, min(max_value, value))
