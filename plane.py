@@ -12,7 +12,7 @@ class Plane(Object):
         material (Material): Material que define as propriedades de reflexao do plano.
     """
 
-    def __init__(self, point, normal, material, one_side = True):
+    def __init__(self, point, normal, material, one_side = True, inf : bool = True, distance : float = 100):
         """
         Inicializa uma instancia de Plane com um ponto, vetor normal e material.
 
@@ -27,6 +27,9 @@ class Plane(Object):
         self.normal = normal.normalize()
         self.material = material
         self.one_side = one_side
+        self.inf = inf
+        self.distance = distance
+        self.distance_scale : float = 1
 
     def __repr__(self):
         """
@@ -54,13 +57,23 @@ class Plane(Object):
             if b < 0:
                 t = -a / b
                 if t > self.parameter_min:
-                    return {"t" : t, "color" : self.get_color()}
+                    col_point = ray.get_point_by_parameter(t)
+                    if self.is_in_distance(col_point):
+                        return {"t" : t, "color" : self.get_color()}
         else:
             if b < 0 or b > 0:
                 t = -a / b
                 if t > self.parameter_min:
-                    return {"t" : t, "color" : self.get_color()}
+                    col_point = ray.get_point_by_parameter(t)
+                    if self.is_in_distance(col_point):
+                        return {"t" : t, "color" : self.get_color()}
         return None
+
+    def is_in_distance(self, p : Point):
+        if self.inf:
+            return True
+        else:
+            return p.distance_to(self.point) <= (self.distance * self.distance_scale)
 
     def surface_norm(self, point=None):
         """
@@ -91,6 +104,24 @@ class Plane(Object):
             tuple: A cor base (R, G, B) do material.
         """
         return self.material.color
+    
+    def get_center(self):
+        """Função que retorna o centro do plano."""
+        return self.point
+
+    def move(self, movement_vector : Vector):
+        """Função que movimenta o plano a partir de uma transformação de translação."""
+        move_matrix = Matrix.create_move_matrix(movement_vector)
+        self.point = move_matrix.dot_product(self.point)
+    
+    def rotate(self, degree : float, axis : int):
+        """Função que rotaciona o plano a partir de uma transformação de rotação."""
+        rotation_matrix = Matrix.create_rotation_matrix(degree, axis)
+        self.normal = rotation_matrix.dot_product(self.normal)
+        self.normal.normalize()
+    
+    def scale(self, new_scale : float):
+        self.distance_scale = new_scale
 
 
 ### Classe "Plane"

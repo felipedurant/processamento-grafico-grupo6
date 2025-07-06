@@ -1,5 +1,7 @@
 import abc
-
+from vector import Vector
+from point import Point
+from matrix import Matrix
 
 class Object(abc.ABC):
     def __init__(self):
@@ -18,6 +20,26 @@ class Object(abc.ABC):
     @abc.abstractmethod
     def get_color(self):
         """Retorna a cor do objeto."""
+        pass
+    
+    @abc.abstractmethod
+    def get_center(self):
+        """Retorna o centro do objeto."""
+        pass
+    
+    @abc.abstractmethod
+    def move(self, movement_vector : Vector):
+        """Faz transformações de translação no objeto, fazendo ele se mover."""
+        pass
+
+    @abc.abstractmethod
+    def rotate(self, degree : float, axis : int):
+        """Faz transformações de rotação no objeto, fazendo ele girar em seu proprio eixo."""
+        pass
+    
+    @abc.abstractmethod
+    def scale(self):
+        """Faz transformações de escala no objeto, fazendo ele mudar de tamanho."""
         pass
 
 ### Classe "Object"

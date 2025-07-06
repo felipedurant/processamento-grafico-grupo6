@@ -6,7 +6,7 @@ from math import *
 
 class Camera:
     def __init__(self, position : Point, target : Point, screen_distance : float,
-                 screen_heigth : int, screen_width  : int, up_vector : Vector =Vector(0,0,1)):
+                 resolution_height : int, resolution_width  : int, up_vector : Vector =Vector(0,0,1)):
         """
         Inicializa a câmera, a posicionando e definindo seus valores.
 
@@ -14,8 +14,8 @@ class Camera:
         position (Point): ponto em que a câmera está. 
         target (Point): ponto para o qual a câmera está olhando.
         screen_distance (float): distancia entre a câmera e a tela.
-        screen_heigth (int): altura da tela.
-        screen_width (int): largura da tela.
+        resolution_height (int): altura da tela.
+        resolution_width (int): largura da tela.
         up_vector (Vector): vetor que aponta para cima.
         """
         # Posições:
@@ -23,16 +23,18 @@ class Camera:
         self.target : Point = target
         #Screen:
         self.scr_dist : float = screen_distance
-        self.scr_h : int = self.set_screen_heigth(screen_heigth)
-        self.scr_w : int = self.set_screen_width(screen_width)
+        self.res_h : int = self.set_resolution_height(resolution_height)
+        self.res_w : int = self.set_resolution_width(resolution_width)
+        self.scr_size_x : float = 50
+        self.scr_size_y : float = 37.5
         # Vectors:
         self.vec_target : Vector = self.get_target_vector().normalize()
         self.vec_up : Vector = self.set_vector_up(up_vector)
         self.vec_u : Vector = self.vec_target.cross_product(self.vec_up).normalize()
         self.vec_v : Vector = self.vec_target.cross_product(self.vec_u).normalize()
         self.vec_w : Vector = -self.vec_target.normalize()
-        self.vec_qx : Vector = self.scr_w/(self.scr_w - 1) * self.vec_u
-        self.vec_qy : Vector = self.scr_h/(self.scr_h - 1) * self.vec_v
+        self.vec_qx : Vector = self.scr_size_x/(self.res_w) * self.vec_u
+        self.vec_qy : Vector = self.scr_size_y/(self.res_h) * self.vec_v
         # Ray
         self.ray : Ray = Ray(self.position, Vector())
         self.current_pixel = [0,0]
@@ -46,7 +48,7 @@ class Camera:
         """
         return self.target - self.position
 
-    def set_screen_heigth(self, heigth : int):
+    def set_resolution_height(self, heigth : int):
         """
         Define o valor da altura da tela.
         Se o valor recebido for menor ou igual a zero, a altura é definida como 1.
@@ -58,12 +60,12 @@ class Camera:
         int: altura da tela.
         """
         if heigth <= 0:
-            self.scr_h = 1
+            self.res_h = 1
         else:
-            self.scr_h = heigth
-        return self.scr_h
+            self.res_h = heigth
+        return self.res_h
     
-    def set_screen_width(self, width : int):
+    def set_resolution_width(self, width : int):
         """
         Define o valor da largura da tela.
         Se o valor recebido for menor ou igual a zero, a largura é definida como 1.
@@ -75,10 +77,10 @@ class Camera:
         int: largura da tela.
         """
         if width <= 0:
-            self.scr_w = 1
+            self.res_w = 1
         else:
-            self.scr_w = width
-        return self.scr_w
+            self.res_w = width
+        return self.res_w
 
     def set_vector_up(self, vector : Vector):
         """
@@ -104,16 +106,17 @@ class Camera:
         self.current_pixel = [0,0]
         # Faz a direção do ray apontar para o topo esquerdo da tela:
         self.ray.change_direction((self.vec_w.invert() * self.scr_dist)) # ray aponta para o centro da tela.
-        self.ray.change_direction((self.vec_v * -(self.scr_h/2))) # ray aponta para o topo da tela.
-        self.ray.change_direction((self.vec_u * -(self.scr_w/2))) # ray aponta para o topo esquerdo da tela.
+        self.ray.change_direction((self.vec_v * -(self.scr_size_y/2))) # ray aponta para o topo da tela.
+        self.ray.change_direction((self.vec_u * -(self.scr_size_x/2))) # ray aponta para o topo esquerdo da tela.
         # Posiciona o ray no centro do pixel:
-        pixel_size = 1/self.scr_h
+        pixel_size_x = self.scr_size_x/self.res_w
+        pixel_size_y = self.scr_size_y/self.res_h
         # Faz o ray apontar para o centro do pixel (horizontalmente):
-        if self.scr_h % 2 == 0:
-            self.ray.change_direction((self.vec_u * (pixel_size/2)))
+        if self.res_w % 2 == 0:
+            self.ray.change_direction((self.vec_u * (pixel_size_x/2)))
         # Faz o ray apontar para o centro do pixel (verticalmente):
-        if self.scr_w % 2 == 0:
-            self.ray.change_direction((self.vec_v * (pixel_size/2)))
+        if self.res_h % 2 == 0:
+            self.ray.change_direction((self.vec_v * (pixel_size_y/2)))
     
     def start_ray_cast(self, objects : list):
         """
@@ -130,9 +133,9 @@ class Camera:
         screen_matrix = []
         self.put_ray_in_start_position()
         start_direction : Vector = self.ray.get_direction()
-        for y in range(self.scr_h):
+        for y in range(self.res_h):
             screen_matrix.append([])
-            for x in range(self.scr_w):
+            for x in range(self.res_w):
                 self.ray.set_direction((start_direction + (x * self.vec_qx) + (y * self.vec_qy)))
                 self.current_pixel = [x, y]
                 intercections = self.verify_intersections(objects)

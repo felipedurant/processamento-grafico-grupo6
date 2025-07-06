@@ -12,7 +12,7 @@ class Mesh(Object):
 
         Args:
         vertices ([Point]): Lista de pontos que representam os vertices dos triangulos.
-        triples ((int, int, int)): Triplas que contem 3 inteiros que são os indices dos vertices de um triangulo.
+        triples ([(int, int, int)]): Triplas que contem 3 inteiros que são os indices dos vertices de um triangulo.
         n_triangles (int): Número de triangulos na malha.
         n_vertices (int): Número de vertices na malha.
         color: (tupla): tupla com a cor da malha (r, g, b).
@@ -108,15 +108,6 @@ class Mesh(Object):
         """
         return isinstance(triple, tuple) and len(triple) == 3 and self.get_vertice(triple[0]) != None and\
             self.get_vertice(triple[1]) != None and self.get_vertice(triple[2]) != None
-    
-    def get_color(self):
-        """
-        Retorna a cor da malha.
-
-        Returns:
-        Retorna a tupla com 3 elementos (r, g, b) que está associada a cor da malha.
-        """
-        return self.color
 
     def create_triangles_normals_list(self):
         """
@@ -194,6 +185,7 @@ class Mesh(Object):
         return lower_info
 
     def point_in_triangle(self, point : Point, triangle : tuple):
+        """Indica se o ponto está ou não dentro do triangulo."""
         vert1 = self.get_vertice(triangle[0])
         vert2 = self.get_vertice(triangle[1])
         vert3 = self.get_vertice(triangle[2])
@@ -205,6 +197,59 @@ class Mesh(Object):
             return True
         else:
             return False
+    
+    def get_color(self):
+        """
+        Retorna a cor da malha.
+
+        Returns:
+        Retorna a tupla com 3 elementos (r, g, b) que está associada a cor da malha.
+        """
+        return self.color
+    
+    def get_center(self):
+        """Retorna o centro da mesh, fazendo a soma de todos os seus pontos para tirar a media eles."""
+        total_point = Point()
+        for p in self.vertices:
+            total_point += p
+        center_x = total_point.x / self.n_vertices
+        center_y = total_point.y / self.n_vertices
+        center_z = total_point.z / self.n_vertices
+        center_point = Point(center_x, center_y, center_z) 
+        return center_point
+    
+    def apply_transform(self, transformation_matrix : Matrix):
+        """
+        Função responsavel por aplicar a transformação para todos os pontos da mesh e atualizar os vetores normais.
+        """
+        for i in range(self.n_vertices):
+            self.vertices[i] = transformation_matrix.dot_product(self.vertices[i])
+        self.normals_triangles = self.create_triangles_normals_list()
+        self.normals_vertices = self.create_vertices_normals_list()
+    
+    def move(self, movement_vector : Vector):
+        """Função que movimenta a mesh a partir de uma transformação de translação."""
+        move_matrix = Matrix.create_move_matrix(movement_vector)
+        self.apply_transform(move_matrix)
+    
+    def rotate(self, degree : float, axis : int):
+        """Função que rotaciona a mesh a partir de uma transformação de rotação."""
+        move_vector = Point() - self.get_center()
+        position_to_center = Matrix.create_move_matrix(move_vector)
+        rotation_matrix = Matrix.create_rotation_matrix(degree, axis)
+        center_to_position = position_to_center.inverse()
+        t = center_to_position.dot_product(rotation_matrix).dot_product(position_to_center)
+        self.apply_transform(t)
+    
+    def scale(self, scale_vector : Vector):
+        """Função que muda a escala da mesh a partir de uma transformação de escala."""
+        move_vector = Point() - self.get_center()
+        position_to_center = Matrix.create_move_matrix(move_vector)
+        scale_matrix = Matrix.create_scale_matrix(scale_vector)
+        center_to_position = position_to_center.inverse()
+        t = center_to_position.dot_product(scale_matrix).dot_product(position_to_center)
+        self.apply_transform(t)
+        pass
 
 ### Classe "Mesh"
  ## - Propósito: Representa uma coleção de vértices, arestas e faces que define a forma de um objeto 3D.
