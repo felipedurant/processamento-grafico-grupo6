@@ -16,6 +16,7 @@ def main():
     # 2. DEFINIÇÃO DOS MATERIAIS
     # É uma boa prática definir os materiais primeiro.
     mat_chao_xadrez = Material(color=(255, 255, 255), ambient=0.2, diffuse=0.8, specular=0.2, shininess=64, reflection=0.1, is_checkerboard=True)
+    mat_cubo = Material(color=(102, 0, 204), reflection=0.2, specular=0.8, shininess=256) # Material roxo
     mat_esfera_vermelha = Material(color=(255, 0, 0), ambient=0.2, diffuse=0.9, specular=0.9, shininess=256, reflection=0.3)
     mat_esfera_azul = Material(color=(0, 0, 255), ambient=0.2, diffuse=0.6, specular=0.9, shininess=256, reflection=0.5, transparency=0.3, ior=1.5)
     mat_malha_verde = Material(color=(0, 255, 0), ambient=0.2, diffuse=0.8, specular=0.5, shininess=128)
@@ -39,14 +40,14 @@ def main():
     # cena.add(Plane(point=Point(-2.8, 0, 0), normal=Vector(1, 0, 0), material=parede_laranja)) # Laranja
 
     # Adiciona esferas
-    cena.add(Sphere(center=Point(-1, 0, -2), radius=0.4, material=mat_esfera_vermelha))
-    cena.add(Sphere(center=Point(1, 0, -2), radius=0.4, material=mat_esfera_azul))
+    # cena.add(Sphere(center=Point(-1, 0, -2), radius=0.4, material=mat_esfera_vermelha))
+    # cena.add(Sphere(center=Point(1, 0, -2), radius=0.4, material=mat_esfera_azul))
 
     # Adiciona uma malha (um tetraedro)
     vertices_tetra = [Point(0, 2, 0), Point(1, 0, -1), Point(-1, 0, -1), Point(0, 0, 1)]
     faces_tetra = [(0, 1, 2), (0, 3, 1), (0, 2, 3), (1, 3, 2)]
     malha = Mesh(vertices_tetra, faces_tetra, mat_malha_verde)
-    cena.add_mesh(malha) # O método add_mesh adiciona todos os triângulos da malha na cena
+    #cena.add_mesh(malha) # O método add_mesh adiciona todos os triângulos da malha na cena
 
     # Adiciona fontes de luz
     cena.add_light(Point(5, 5, -5))
@@ -56,16 +57,16 @@ def main():
     print("Carregando modelo .obj...")
     try:
         # Especifica o caminho para o arquivo .obj
-        verts, faces = load_obj_file("modelos/suzanne.obj")
+        verts, faces = load_obj_file("modelos/cubo.obj")
         
         # Cria um material para o modelo
-        mat_macaco = Material(color=(218, 165, 32), shininess=1000, reflection=0.2) # Dourado
+        #mat_macaco = Material(color=(218, 165, 32), shininess=1000, reflection=0.2) # Dourado
 
         # Usa a classe Mesh para processar os dados
-        modelo_obj = Mesh(vertices=verts, faces=faces, material=mat_macaco)
+        cubo = Mesh(vertices=verts, faces=faces, material=mat_cubo)
 
         # Adiciona a malha completa (todos os triângulos) à cena
-        cena.add_mesh(modelo_obj)
+        cena.add_mesh(cubo)
         print("Modelo .obj adicionado à cena com sucesso.")
         
     except FileNotFoundError:

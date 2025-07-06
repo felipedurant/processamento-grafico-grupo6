@@ -1,0 +1,41 @@
+# Arquivo .obj para um cubo simples
+# Autor: Gemini (gerado para este projeto)
+
+# Define os 8 vértices (pontos) do cubo.
+# O cubo terá 2 unidades de largura, altura e profundidade, centrado na origem.
+v -1.0 -1.0 -1.0
+v  1.0 -1.0 -1.0
+v -1.0  1.0 -1.0
+v  1.0  1.0 -1.0
+v -1.0 -1.0  1.0
+v  1.0 -1.0  1.0
+v -1.0  1.0  1.0
+v  1.0  1.0  1.0
+
+# Define as 12 faces (triângulos) do cubo.
+# Cada face quadrada é composta por dois triângulos.
+# Os números se referem à ordem dos vértices definidos acima (começando do 1).
+
+# Face da frente
+f 1 2 4
+f 1 4 3
+
+# Face de trás
+f 5 7 8
+f 5 8 6
+
+# Face de cima
+f 3 4 8
+f 3 8 7
+
+# Face de baixo
+f 1 6 2
+f 1 5 6
+
+# Face da direita
+f 2 6 8
+f 2 8 4
+
+# Face da esquerda
+f 1 3 7
+f 1 7 5
