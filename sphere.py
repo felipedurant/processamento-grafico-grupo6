@@ -6,12 +6,13 @@ from vector import Vector
 from point import Point
 from object import Object
 from material import Material
+from matrix import Matrix4
 
 class Sphere(Object):
     """
     Representa uma esfera em 3D.
     """
-    def __init__(self, center: Point, radius: float, material: Material):
+    def __init__(self, material: Material, transform: Optional[Matrix4] = None):
         """
         Inicializa a Esfera.
 
@@ -21,15 +22,13 @@ class Sphere(Object):
             material (Material): O material que define a aparência da esfera.
         """
 
-        super().__init__(material)
-        self.center = center
-        self.radius = radius
+        super().__init__(material, transform)
 
     def __repr__(self) -> str:
         """Fornece uma representação em string da instância de Sphere."""
-        return f"Sphere(center={self.center}, radius={self.radius})"
+        return f"Sphere(transform=\n{self.transform}\n)"
 
-    def intersects(self, ray: Ray) -> float | None:
+    def intersects(self, ray: Ray) -> Optional[float]:
         """
         Calcula a interseção do raio com a esfera usando a fórmula quadrática.
         
@@ -37,14 +36,16 @@ class Sphere(Object):
             A distância 't' da interseção mais próxima, ou None se não houver.
         """
 
+        local_ray = ray.transform(self.inverse_transform)
+
         # Vetor do centro da esfera para a origem do raio
-        oc = ray.origin - self.center
+        oc = local_ray.origin - Point(0, 0, 0)
 
         # Coeficientes da equação quadrática (a*t^2 + b*t + c = 0)
         # 'a' é 1 porque a direção do raio é normalizada
-        a = ray.direction.dot_product(ray.direction)
-        b = 2.0 * oc.dot_product(ray.direction)
-        c = oc.dot_product(oc) - self.radius**2
+        a = local_ray.direction.dot_product(local_ray.direction)
+        b = 2.0 * oc.dot_product(local_ray.direction)
+        c = oc.dot_product(oc) - 1.0 # raio ao quadrado = 1
 
         delta = b**2 - 4 * a * c 
 
@@ -65,12 +66,12 @@ class Sphere(Object):
             
         return None
     
-    def get_normal_at(self, point: Point) -> Vector:
+    def get_normal_at(self, local_point: 'Point') -> 'Vector':
         """
         Calcula o vetor normal na superfície da esfera em um ponto específico.
         """
         # A normal da esfera é o vetor do seu centro até o ponto na superfície.
-        return (point - self.center).normalize()
+        return (local_point - Point(0, 0, 0)).normalize()
 
 
 ##Classe "Sphere"

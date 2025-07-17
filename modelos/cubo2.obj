@@ -1,0 +1,39 @@
+# Cubo com "winding order" (ordem de enrolamento) corrigida.
+# Todas as faces estão definidas em ordem anti-horária vistas de fora,
+# garantindo que as normais sempre apontem para fora do objeto.
+
+# 8 vértices do cubo
+v -1.0 -1.0 -1.0
+v  1.0 -1.0 -1.0
+v -1.0  1.0 -1.0
+v  1.0  1.0 -1.0
+v -1.0 -1.0  1.0
+v  1.0 -1.0  1.0
+v -1.0  1.0  1.0
+v  1.0  1.0  1.0
+
+# 12 faces triangulares
+
+# Face da frente (normal aponta para -Z)
+f 1 3 4
+f 1 4 2
+
+# Face de trás (normal aponta para +Z)
+f 5 6 8
+f 5 8 7
+
+# Face da esquerda (normal aponta para -X)
+f 5 7 3
+f 5 3 1
+
+# Face da direita (normal aponta para +X)
+f 2 4 8
+f 2 8 6
+
+# Face de cima (normal aponta para +Y)
+f 3 7 8
+f 3 8 4
+
+# Face de baixo (normal aponta para -Y)
+f 1 2 6
+f 1 6 5

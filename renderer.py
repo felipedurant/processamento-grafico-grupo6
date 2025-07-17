@@ -4,7 +4,15 @@ from object import Object
 from ray import Ray
 from image import Image
 from scene import Scene
-from math import floor
+from math import floor, pow
+
+
+# Função auxiliar para manipular cores (somar e multiplicar)
+def add_colors(c1, c2):
+    return (c1[0] + c2[0], c1[1] + c2[1], c1[2] + c2[2])
+
+def multiply_color_by_scalar(c, s):
+    return (c[0] * s, c[1] * s, c[2] * s)
 
 """
 Classe responsável por renderizar a cena
@@ -35,6 +43,68 @@ class Renderer:
             return (closest_distance, closest_object)
         return None
     
+    def shade(self, obj: Object, hit_point, normal, ray: Ray) -> tuple:
+        """
+        Calcula a cor final de um ponto usando o modelo de iluminação de Phong.
+        """
+        material = obj.material
+
+        # INÍCIO DA LÓGICA DO XADREZ
+        # Verifica se o material do objeto é do tipo xadrez
+        if material.is_checkerboard:
+            check = (floor(hit_point.x) + floor(hit_point.z)) % 2
+            if check == 0:
+                base_color = material.color # Cor 1 (ex: branco)
+            else:
+                base_color = (20, 20, 20)  # Cor 2 (ex: preto/cinza escuro)
+        else:
+            # Comportamento normal: se não for xadrez, usa a cor sólida do material
+            base_color = material.color
+        # FIM DA LÓGICA DO XADREZ
+
+
+        # Inicia a cor final com a contribuição da luz ambiente
+        final_color = multiply_color_by_scalar(material.color, material.ambient)
+
+        # 2. Loop sobre todas as fontes de luz para calcular Difusa e Especular
+        for light in self.scene.lights:
+            light_dir = (light - hit_point).normalize()
+
+            # CÁLCULO DE SOMBRA
+            # Lança um raio de sombra para verificar se o ponto está obstruído da luz
+            shadow_ray_origin = hit_point + normal * obj.shadow_bias
+            shadow_ray = Ray(shadow_ray_origin, light_dir)
+            shadow_hit = self.find_closest_intersection(shadow_ray)
+            
+            # Se o raio de sombra atingir qualquer objeto, o ponto está na sombra
+            # em relação a ESTA fonte de luz, então pulamos para a próxima luz.
+            if shadow_hit is not None:
+                continue
+            # FIM DO CÁLCULO DE SOMBRA
+
+            # 3. Componente Difusa
+            # Mede o quão de frente a superfície está para a luz
+            diffuse_intensity = max(0, normal.dot_product(light_dir))
+            diffuse_color = multiply_color_by_scalar(base_color, material.diffuse * diffuse_intensity)
+            final_color = add_colors(final_color, diffuse_color)
+
+            # 4. Componente Especular
+            # Mede o quão alinhado o reflexo da luz está com a visão da câmera
+            view_dir = (ray.origin - hit_point).normalize()
+            reflection_dir = (-light_dir).reflect(normal)
+            specular_intensity = max(0, view_dir.dot_product(reflection_dir))
+            
+            if specular_intensity > 0:
+                specular_power = pow(specular_intensity, material.shininess)
+                # A cor do brilho especular é geralmente branca (ou a cor da luz)
+                specular_color = multiply_color_by_scalar((255, 255, 255), material.specular * specular_power)
+                final_color = add_colors(final_color, specular_color)
+
+        # Garante que os valores de cor não ultrapassem 255
+        final_color = (min(255, final_color[0]), min(255, final_color[1]), min(255, final_color[2]))
+
+        return final_color
+    
     def render(self) -> Image:
         """
         Renderiza a cena inteira e retorna um objeto Image.
@@ -49,37 +119,20 @@ class Renderer:
                 
                 color = self.background_color
                 if hit:
-                    distance, obj = hit
-                    material = obj.material # Futuramente, aqui entrará a iluminação
+                    distance, obj_hit = hit
+                    hit_point = ray.point_at(distance)
+                    local_hit_point = obj_hit.inverse_transform * hit_point
+                    local_normal = obj_hit.get_normal_at(local_hit_point)
+                    material = obj_hit.material
 
-                    # INÍCIO DA LÓGICA DO XADREZ
-                    
-                    # Verifica se o material do objeto é do tipo xadrez
-                    if material.is_checkerboard:
-                        # Ponto exato da colisão no mundo
-                        hit_point = ray.point_at(distance)
+                    world_normal = (obj_hit.inverse_transform_transpose * local_normal).normalize()
+                    # Se atingiu algo, calcula a cor com base na luz e sombra
+                    color = self.shade(obj_hit, hit_point, world_normal, ray)
 
-                        # A matemática do xadrez: somamos os "chãos" das coordenadas
-                        # x e z. Se a soma for par, usamos uma cor; se for ímpar, usamos outra.
-                        # Isso cria um padrão de quadrados no plano XZ (o "chão").
-                        check = (floor(hit_point.x) + floor(hit_point.z)) % 2
-                        
-                        if check == 0:
-                            # Usa a cor base do material para uma das cores do xadrez
-                            color = material.color
-                        else:
-                            # Usa uma cor alternativa (ex: preto ou uma variação mais escura)
-                            color = (20, 20, 20) 
-                    else:
-                        # Comportamento normal: se não for xadrez, usa a cor sólida do material
-                        color = material.color
-                    
-                    # FIM DA LÓGICA DO XADREZ
-                    
-                    # (Futuramente, o cálculo de iluminação entraria aqui, modificando a 'color')
-                
+                                    
                 # 2. Define o pixel diretamente no objeto de imagem
                 final_image.set_pixel(x, y, color)
         
         # 3. Retorna o objeto de imagem completo
+        print("Renderização concluída!")
         return final_image

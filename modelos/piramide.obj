@@ -1,0 +1,21 @@
+# Arquivo .obj para uma pirâmide de base quadrada.
+# A base está no plano Y=-1 e o topo no Y=1.
+
+# 5 vértices: 4 para a base quadrada, 1 para o topo (ápice).
+v  1.0 -1.0 -1.0  # 0 (base, frente-direita)
+v -1.0 -1.0 -1.0  # 1 (base, frente-esquerda)
+v -1.0 -1.0  1.0  # 2 (base, trás-esquerda)
+v  1.0 -1.0  1.0  # 3 (base, trás-direita)
+v  0.0  1.0  0.0  # 4 (ápice)
+
+# 6 faces triangulares: 2 para a base, 4 para os lados inclinados.
+
+# Base da pirâmide (aponta para baixo, em -Y)
+f 0 1 2
+f 0 2 3
+
+# Lados inclinados
+f 0 4 1  # Face frontal
+f 3 4 0  # Face direita
+f 2 4 3  # Face traseira
+f 1 4 2  # Face esquerda

@@ -26,6 +26,9 @@ def load_obj_file(filepath: str) -> Tuple[List[Point], List[tuple]]:
                 # Remove espaços em branco no início e no fim da linha
                 line = line.strip()
 
+                # Remove qualquer comentário da linha antes de processar
+                line = line.split('#')[0]
+
                 if not line or line.startswith('#'):
                     # Ignora linhas vazias ou comentários
                     continue

@@ -1,5 +1,3 @@
-# Em um novo arquivo: scene.py
-
 from typing import List
 from point import Point
 from object import Object

@@ -1,5 +1,6 @@
 from vector import Vector
-from point import Point # para o 'origin'
+from point import Point
+from matrix import Matrix4
 
 class Ray:
     """
@@ -8,7 +9,6 @@ class Ray:
     """
     def __init__(self, origin: Point, direction: Vector):
         self.origin = origin
-        # Ao atribuir a direção aqui, o método especial de 'setter' já será chamado
         self.direction = direction
 
     @property
@@ -29,9 +29,13 @@ class Ray:
         Retorna um ponto no raio a uma 'distance' específica da origem.
         (Substitui get_point_by_parameter e get_point_by_distance)
         """
-        # self.direction está seguro e normalizado
         return self.origin + self.direction * distance
 
     def __repr__(self) -> str:
         """ Retorna uma representacao em string do objeto Ray. """
         return f'Ray({repr(self.origin)}, {repr(self.direction)})'
+    
+    def transform(self, matrix: 'Matrix4') -> 'Ray':
+        new_origin = matrix * self.origin
+        new_direction = matrix * self.direction
+        return Ray(new_origin, new_direction)
