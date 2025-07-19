@@ -14,6 +14,13 @@ def add_colors(c1, c2):
 def multiply_color_by_scalar(c, s):
     return (c[0] * s, c[1] * s, c[2] * s)
 
+def multiply_colors(c1, c2):
+    # Normaliza as cores de [0, 255] para [0, 1] para a multiplicação
+    norm_c1 = (c1[0]/255, c1[1]/255, c1[2]/255)
+    norm_c2 = (c2[0]/255, c2[1]/255, c2[2]/255)
+    # Multiplica e retorna para a escala [0, 255]
+    return (norm_c1[0]*norm_c2[0]*255, norm_c1[1]*norm_c2[1]*255, norm_c1[2]*norm_c2[2]*255)
+
 """
 Classe responsável por renderizar a cena
 """
@@ -54,26 +61,25 @@ class Renderer:
         if material.is_checkerboard:
             check = (floor(hit_point.x) + floor(hit_point.z)) % 2
             if check == 0:
-                base_color = material.color # Cor 1 (ex: branco)
+                base_diffuse_color = material.diffuse
             else:
-                base_color = (20, 20, 20)  # Cor 2 (ex: preto/cinza escuro)
+                base_diffuse_color = (20, 20, 20)  # Cor 2 (ex: preto/cinza escuro)
         else:
             # Comportamento normal: se não for xadrez, usa a cor sólida do material
-            base_color = material.color
+            base_diffuse_color = material.diffuse
         # FIM DA LÓGICA DO XADREZ
 
 
         # Inicia a cor final com a contribuição da luz ambiente
-        final_color = multiply_color_by_scalar(material.color, material.ambient)
+        final_color = multiply_colors(self.scene.ambient_light, material.ambient)
 
         # 2. Loop sobre todas as fontes de luz para calcular Difusa e Especular
         for light in self.scene.lights:
-            light_dir = (light - hit_point).normalize()
+            light_dir = (light.position - hit_point).normalize()
 
             # CÁLCULO DE SOMBRA
             # Lança um raio de sombra para verificar se o ponto está obstruído da luz
-            shadow_ray_origin = hit_point + normal * obj.shadow_bias
-            shadow_ray = Ray(shadow_ray_origin, light_dir)
+            shadow_ray = Ray(hit_point + normal * obj.shadow_bias, light_dir)
             shadow_hit = self.find_closest_intersection(shadow_ray)
             
             # Se o raio de sombra atingir qualquer objeto, o ponto está na sombra
@@ -85,7 +91,8 @@ class Renderer:
             # 3. Componente Difusa
             # Mede o quão de frente a superfície está para a luz
             diffuse_intensity = max(0, normal.dot_product(light_dir))
-            diffuse_color = multiply_color_by_scalar(base_color, material.diffuse * diffuse_intensity)
+            diffuse_contribution = multiply_colors(light.intensity, base_diffuse_color)
+            diffuse_color = multiply_color_by_scalar(diffuse_contribution, diffuse_intensity)
             final_color = add_colors(final_color, diffuse_color)
 
             # 4. Componente Especular
@@ -96,8 +103,9 @@ class Renderer:
             
             if specular_intensity > 0:
                 specular_power = pow(specular_intensity, material.shininess)
-                # A cor do brilho especular é geralmente branca (ou a cor da luz)
-                specular_color = multiply_color_by_scalar((255, 255, 255), material.specular * specular_power)
+                specular_contribution = multiply_colors(light.intensity, material.specular)
+                # A cor do brilho especular é branca (ou a cor da luz)
+                specular_color = multiply_color_by_scalar(specular_contribution, specular_power)
                 final_color = add_colors(final_color, specular_color)
 
         # Garante que os valores de cor não ultrapassem 255

@@ -3,14 +3,21 @@ from point import Point
 from object import Object
 from mesh import Mesh # Importamos Mesh para o método 'add_mesh'
 
+class Light:
+    """Representa uma fonte de luz pontual com posição e intensidade (cor)."""
+    def __init__(self, position: Point, intensity: tuple = (255, 255, 255)):
+        self.position = position
+        self.intensity = intensity
+
 class Scene:
     """
     Representa o mundo a ser renderizado.
     Contém a lista de todos os objetos e fontes de luz.
     """
-    def __init__(self):
+    def __init__(self, ambient_light: tuple = (255, 255, 255)):
         self.objects: List[Object] = []
-        self.lights: List[Point] = []
+        self.lights: List[Light] = []
+        self.ambient_light = ambient_light
 
     def add(self, obj: Object):
         """Adiciona um único objeto (como Sphere ou Plane) à cena."""
@@ -23,6 +30,6 @@ class Scene:
         """
         self.objects.extend(mesh.triangles)
 
-    def add_light(self, light_position: Point):
+    def add_light(self, light: Light):
         """Adiciona uma fonte de luz (representada por sua posição) à cena."""
-        self.lights.append(light_position)
+        self.lights.append(light)
