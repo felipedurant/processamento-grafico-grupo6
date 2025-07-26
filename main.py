@@ -16,7 +16,6 @@ def main():
     # A cena é um objeto da classe Scene, que contém a lista de objetos e luzes.
     cena = Scene(ambient_light=(30, 30, 30))
 
-    # CONFIGURAÇÃO DA CÂMERA
     largura = 800
     altura = 600
     minha_camera = Camera(
@@ -27,44 +26,42 @@ def main():
         fov_degrees=75.0
     )
 
-    meu_renderer = Renderer(camera=minha_camera, scene=cena)
+    meu_renderer = Renderer(camera=minha_camera, scene=cena, max_depth=3)
 
     print("Renderizador configurado. Iniciando renderização...")
 
 
     # DEFINIÇÃO DOS MATERIAIS
-    mat_chao_xadrez = Material(diffuse=(200, 200, 200), specular=(10, 10, 10) ,is_checkerboard=True)
-    mat_cubo = Material(diffuse=(102, 0, 204), specular=(255, 255, 255), shininess=256) # Material roxo
-    mat_piramide = Material(diffuse=(212, 175, 55), specular=(255, 255, 255), shininess=512) # Material dourado
-    # mat_esfera_vermelha = Material(color=(255, 0, 0), ambient=0.2, diffuse=0.9, specular=0.9, shininess=256, reflection=0.3)
-    # mat_esfera_azul = Material(color=(0, 0, 255), ambient=0.2, diffuse=0.6, specular=0.9, shininess=256, reflection=0.5, transparency=0.3, ior=1.5)
-    # mat_malha_verde = Material(color=(0, 255, 0), ambient=0.2, diffuse=0.8, specular=0.5, shininess=128)
-    parede_amarela = Material(diffuse=(255, 255, 51), specular=(10, 10, 10), shininess=64, is_checkerboard=False)
+    mat_chao_xadrez = Material(diffuse=(200, 200, 200), is_checkerboard=True)
+    mat_cubo = Material(diffuse=(102, 0, 204), specular=(255, 255, 255), reflection_color=(100, 100, 100), transparency_color=(60, 60, 60), shininess=256) # Material roxo
+    mat_piramide = Material(diffuse=(212, 175, 55), specular=(255, 255, 255), reflection_color=(100, 100, 100), transparency_color=(60, 60, 60), shininess=512) # Material dourado
+    mat_esfera_vermelha = Material(diffuse=(255, 0, 0), specular=(255, 255, 255), reflection_color=(200, 200, 200), shininess=256)
+    mat_esfera_azul = Material(diffuse=(0, 0, 255), specular=(255, 255, 255), shininess=256)
+    #parede_amarela = Material(diffuse=(255, 255, 51), specular=(10, 10, 10), shininess=64, is_checkerboard=False)
     #cena.add(Plane(point=Point(5, 0, 0), normal=Vector(-0.1, 0, 0), material=parede_amarela))
 
+    # Esfera espelhada
+    mat_espelho = Material(diffuse=(50, 50, 80), # Um espelho real tem cor difusa escura
+                           specular=(255, 255, 255),
+                           shininess=1000,
+                           reflection_color=(230, 230, 230),
+                           transparency_color=(60, 60, 60),)
+
     
-    cena.add_light(Light(Point(10, 20, -10), intensity=(255, 255, 255))) # Luz branca
-    cena.add_light(Light(Point(-10, 15, -5), intensity=(100, 150, 255))) # Luz azulada
+    cena.add_light(Light(Point(10, 20, -20), intensity=(255, 255, 255))) # Luz branca
+    cena.add_light(Light(Point(-15, 15, -5), intensity=(100, 150, 255))) # Luz azulada
     cena.add(Plane(point=Point(0, -1, 0), normal=Vector(0, 1, 0), material=mat_chao_xadrez)) # Adiciona um plano (chão)
 
 
-    # transform_esfera1 = Matrix4.translation(-1.5, 0, 1) * Matrix4.scaling(2.0, 2.0, 2.0)
-    # esfera1 = Sphere(material=mat_esfera_vermelha, transform=transform_esfera1)
+    cena.add(Sphere(material=mat_espelho))
+
+    transform_esfera1 = Matrix4.translation(-1.5, 0, 2)
+    esfera1 = Sphere(material=mat_esfera_vermelha, transform=transform_esfera1)
     #cena.add(esfera1)
 
-    # transform_esfera2 = Matrix4.translation(1.5, 0, 2) * Matrix4.scaling(1.0, 0.5, 1.0)
-    # esfera2 = Sphere(material=mat_esfera_azul, transform=transform_esfera2)
+    transform_esfera2 = Matrix4.translation(3, 0, 0)
+    esfera2 = Sphere(material=mat_esfera_azul, transform=transform_esfera2)
     #cena.add(esfera2)
-
-
-    # Adiciona uma malha (um tetraedro)
-    # vertices_tetra = [Point(0, 1, 0), Point(1, -1, -1), Point(-1, -1, -1), Point(0, -1, 1)]
-    # faces_tetra = [(0, 1, 2), (0, 3, 1), (0, 2, 3), (1, 2, 3)]
-
-    # transformacao_malha = Matrix4.rotation_y(45)
-    # vertices_transformados = [transformacao_malha * v for v in vertices_tetra]
-    # malha = Mesh(vertices_transformados, faces_tetra, mat_malha_verde)
-    #cena.add_mesh(malha) # O método add_mesh adiciona todos os triângulos da malha na cena
 
 
     # CARREGANDO UM MODELO .OBJ
@@ -72,7 +69,7 @@ def main():
     try:
         # Cubo
         verts, faces = load_obj_file("modelos/cubo2.obj")
-        transformacao_cubo = Matrix4.rotation_y(45)
+        transformacao_cubo = Matrix4.rotation_y(45) * Matrix4.translation(-2.5, 0, -1.5)
         vertices_transformados = [transformacao_cubo * v for v in verts]
         cubo = Mesh(vertices=vertices_transformados, faces=faces, material=mat_cubo)
         cena.add_mesh(cubo)
@@ -80,7 +77,7 @@ def main():
 
         # Piramide
         verts, faces = load_obj_file("modelos/piramide.obj")
-        transform_piramide = Matrix4.translation(2.5, 0, 1.5) * Matrix4.rotation_y(30)
+        transform_piramide = Matrix4.translation(2.5, 0, -1.5) * Matrix4.rotation_y(30)
         vertices_transformados = [transform_piramide * v for v in verts]
         piramide = Mesh(vertices=vertices_transformados, faces=faces, material=mat_piramide)
         cena.add_mesh(piramide)

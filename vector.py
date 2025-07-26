@@ -47,12 +47,14 @@ class Vector:
         return sqrt(self.x ** 2 + self.y ** 2 + self.z ** 2)
 
     def normalize(self):
-        """ Retorna o vetor unitario. """
+        """Retorna o vetor unitário."""
         magnitude = self.magnitude()
-        if magnitude != 0:
-            return Vector(self.x / magnitude, self.y / magnitude, self.z / magnitude)
-        else:
-            return Vector()
+        if magnitude > 0: # Checa se a magnitude é maior que zero
+            return self / magnitude
+        
+        # Se a magnitude for 0, retorna um vetor seguro em vez de (0,0,0)
+        # para evitar a divisão por zero nos cálculos de interseção.
+        return Vector(0, 0, 1) 
 
     def dot_product(self, other):
         """ Retorna o produto escalar entre dois vetores. """

@@ -1,10 +1,10 @@
 from typing import List
 from point import Point
 from object import Object
-from mesh import Mesh # Importamos Mesh para o método 'add_mesh'
+from mesh import Mesh
 
 class Light:
-    """Representa uma fonte de luz pontual com posição e intensidade (cor)."""
+    """Representa uma fonte de luz pontual com posição e intensidade."""
     def __init__(self, position: Point, intensity: tuple = (255, 255, 255)):
         self.position = position
         self.intensity = intensity

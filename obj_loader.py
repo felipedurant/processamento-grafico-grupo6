@@ -1,5 +1,3 @@
-# Em um novo arquivo: obj_loader.py
-
 from typing import List, Tuple
 from point import Point
 

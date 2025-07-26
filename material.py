@@ -5,7 +5,6 @@ class Material:
     Representa as propriedades fisicas de um material para renderizacao.
 
     Atributos:
-        color (tuple): Cor do material como uma tupla (R, G, B).
         ambient (RGB): Coeficiente ambiental, que afeta a luminosidade ambiente percebida.
         diffuse (RGB): Coeficiente lambertiano do material, que afeta a difusao da luz.
         specular (RGB): Coeficiente especular do material, que afeta o brilho especular.
@@ -17,23 +16,23 @@ class Material:
     """
 
     def __init__(self,
-                #color,
                 ambient: Optional[tuple] = None,
                 diffuse: tuple = (255, 255, 255),
                 specular: tuple = (255, 255, 255),
                 shininess: float = 32.0,
-                reflection: float = 0.0,
-                transparency: float = 0.0,
+                reflection_color: tuple = (0, 0, 0),
+                transparency_color: tuple = (0, 0, 0),
                 ior: float = 1.0,
-                is_checkerboard: bool = False):
+                is_checkerboard: bool = False,
+                emission_color: 'Optional[tuple]' = None):
         
-        #self.color = color
         self.diffuse = diffuse
         # Se ambient não for fornecido, ele será uma fração de diffuse.
         self.ambient = ambient if ambient is not None else (diffuse[0] * 0.1, diffuse[1] * 0.1, diffuse[2] * 0.1)
         self.specular = specular 
         self.shininess = shininess   
-        self.reflection = reflection
-        self.transparency = transparency
+        self.reflection_color = reflection_color
+        self.transparency_color = transparency_color
         self.ior = ior
         self.is_checkerboard = is_checkerboard
+        self.emission_color = emission_color
