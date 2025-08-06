@@ -33,19 +33,19 @@ def main():
 
     # DEFINIÇÃO DOS MATERIAIS
     mat_chao_xadrez = Material(diffuse=(200, 200, 200), is_checkerboard=True)
-    mat_cubo = Material(diffuse=(102, 0, 204), specular=(255, 255, 255), reflection_color=(100, 100, 100), transparency_color=(60, 60, 60), shininess=256) # Material roxo
-    mat_piramide = Material(diffuse=(212, 175, 55), specular=(255, 255, 255), reflection_color=(100, 100, 100), transparency_color=(60, 60, 60), shininess=512) # Material dourado
-    mat_esfera_vermelha = Material(diffuse=(255, 0, 0), specular=(255, 255, 255), reflection_color=(200, 200, 200), shininess=256)
-    mat_esfera_azul = Material(diffuse=(0, 0, 255), specular=(255, 255, 255), shininess=256)
+    mat_cubo = Material(diffuse=(230, 230, 230), specular=(255, 255, 255), reflection_color=(0, 0, 0), transparency_color=(255, 255, 255), shininess=256) # Material roxo
+    mat_piramide = Material(diffuse=(255, 255, 255), specular=(255, 255, 255), reflection_color=(0, 0, 0), transparency_color=(255, 255, 255), shininess=512) # Material dourado
+    mat_esfera_vermelha = Material(diffuse=(255, 0, 0), specular=(255, 255, 255), reflection_color=(200, 200, 200), transparency_color=(60, 60, 60), shininess=256)
+    mat_esfera_azul = Material(diffuse=(0, 0, 255), specular=(255, 255, 255), reflection_color=(200, 200, 200), transparency_color=(60, 60, 60), shininess=256)
     #parede_amarela = Material(diffuse=(255, 255, 51), specular=(10, 10, 10), shininess=64, is_checkerboard=False)
     #cena.add(Plane(point=Point(5, 0, 0), normal=Vector(-0.1, 0, 0), material=parede_amarela))
 
     # Esfera espelhada
-    mat_espelho = Material(diffuse=(50, 50, 80), # Um espelho real tem cor difusa escura
+    mat_espelho = Material(diffuse=(255, 255, 255), # Um espelho real tem cor difusa escura
                            specular=(255, 255, 255),
                            shininess=1000,
-                           reflection_color=(230, 230, 230),
-                           transparency_color=(60, 60, 60),)
+                           reflection_color=(0, 0, 0),
+                           transparency_color=(255, 255, 255))
 
     
     cena.add_light(Light(Point(10, 20, -20), intensity=(255, 255, 255))) # Luz branca
@@ -55,11 +55,11 @@ def main():
 
     cena.add(Sphere(material=mat_espelho))
 
-    transform_esfera1 = Matrix4.translation(-1.5, 0, 2)
+    transform_esfera1 = Matrix4.translation(-1.5, 0, 0)
     esfera1 = Sphere(material=mat_esfera_vermelha, transform=transform_esfera1)
     #cena.add(esfera1)
 
-    transform_esfera2 = Matrix4.translation(3, 0, 0)
+    transform_esfera2 = Matrix4.translation(1.5, 0, 0)
     esfera2 = Sphere(material=mat_esfera_azul, transform=transform_esfera2)
     #cena.add(esfera2)
 
@@ -69,9 +69,10 @@ def main():
     try:
         # Cubo
         verts, faces = load_obj_file("modelos/cubo2.obj")
-        transformacao_cubo = Matrix4.rotation_y(45) * Matrix4.translation(-2.5, 0, -1.5)
+        transformacao_cubo = Matrix4.rotation_y(60) * Matrix4.translation(-2.5, 0, -1.5)
         vertices_transformados = [transformacao_cubo * v for v in verts]
         cubo = Mesh(vertices=vertices_transformados, faces=faces, material=mat_cubo)
+        
         cena.add_mesh(cubo)
         print("Modelo .obj adicionado à cena com sucesso.")
 

@@ -22,7 +22,7 @@ class Material:
                 shininess: float = 32.0,
                 reflection_color: tuple = (0, 0, 0),
                 transparency_color: tuple = (0, 0, 0),
-                ior: float = 1.0,
+                ior: float = 1,
                 is_checkerboard: bool = False,
                 emission_color: 'Optional[tuple]' = None):
         

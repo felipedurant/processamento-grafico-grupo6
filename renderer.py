@@ -55,9 +55,12 @@ class Renderer:
 
         for light in self.scene.lights:
             light_dir = (light.position - hit_point).normalize()
+            distance_to_light = (light.position - hit_point).magnitude()
+        
             shadow_ray = Ray(hit_point + normal * obj.shadow_bias, light_dir)
             shadow_hit = self.find_closest_intersection(shadow_ray)
-            if shadow_hit is not None:
+            
+            if shadow_hit is not None and shadow_hit[0] < distance_to_light:
                 continue
 
             # Componente Difusa
@@ -81,8 +84,10 @@ class Renderer:
         return final_color
     
     def trace(self, ray: 'Ray', depth: int) -> tuple:
+        if depth <= 0:
+            return (0, 0, 0)
+
         hit = self.find_closest_intersection(ray)
-        
         if hit is None:
             return self.background_color
 
@@ -95,48 +100,74 @@ class Renderer:
         
         if material.emission_color:
             return material.emission_color
-        
-        local_color = self.shade(obj_hit, hit_point, world_normal, ray)
-        
-        if depth <= 0:
-            return local_color
-            
-        reflected_color = (0, 0, 0)
-        if sum(material.reflection_color) > 0:
-            reflection_dir = ray.direction.reflect(world_normal)
-            reflection_ray = Ray(hit_point + world_normal * obj_hit.shadow_bias, reflection_dir)
-            color_from_reflection = self.trace(reflection_ray, depth - 1)
-            reflected_color = multiply_colors_componentwise(color_from_reflection, material.reflection_color)
 
-        refracted_color = (0, 0, 0)
-        # Verifica se o material é transparente
-        if sum(material.transparency_color) > 0:
+        # --- INÍCIO DA LÓGICA CORRIGIDA ---
+
+        final_color = (0, 0, 0)
+        is_transparent = sum(material.transparency_color) > 0
+
+        if is_transparent:
+            # LÓGICA PARA OBJETOS TRANSPARENTES (VIDRO, ÁGUA)
+            # A cor vem principalmente da reflexão e da luz filtrada pela refração.
+            
+            # (A lógica de Fresnel, IORs, etc., continua a mesma)
             ior_air = 1.0
             cosi = ray.direction.dot_product(world_normal)
-            
             if cosi < 0:
-                # Raio está entrando no objeto (Ar -> Material)
                 etai, etat = ior_air, material.ior
                 incident_normal = world_normal
             else:
-                # Raio está saindo do objeto (Material -> Ar)
                 etai, etat = material.ior, ior_air
                 incident_normal = -world_normal
+            
+            reflectance = ray.direction.fresnel(incident_normal, etai, etat)
+            refracted_color = (0, 0, 0)
+            reflected_color = (0, 0, 0)
 
-            ior_ratio = etai / etat
+            # Cálculo da refração (luz que atravessa)
+            if reflectance < 1.0: # Se não for reflexão interna total
+                ior_ratio = etai / etat
+                refraction_dir = ray.direction.refract(incident_normal, ior_ratio)
+                if refraction_dir is not None:
+                    refraction_ray = Ray(hit_point - incident_normal * obj_hit.shadow_bias, refraction_dir)
+                    # A cor vista através do vidro é TINGIDA pela cor difusa do material
+                    color_from_refraction = self.trace(refraction_ray, depth - 1)
+                    tinted_color = multiply_colors_componentwise(color_from_refraction, material.diffuse)
+                    refracted_color = multiply_color_by_scalar(
+                        multiply_colors_componentwise(tinted_color, material.transparency_color),
+                        1 - reflectance
+                    )
 
-            # Calcula a direção do raio refratado
-            refraction_dir = ray.direction.refract(incident_normal, ior_ratio)
+            # Cálculo da reflexão (luz que ricocheteia)
+            reflection_dir = ray.direction.reflect(incident_normal)
+            reflection_ray = Ray(hit_point + incident_normal * obj_hit.shadow_bias, reflection_dir)
+            color_from_reflection = self.trace(reflection_ray, depth - 1)
+            reflected_color = multiply_color_by_scalar(
+                multiply_colors_componentwise(color_from_reflection, (255,255,255)), # Reflexo de vidro é branco
+                reflectance
+            )
 
-            # Se houver refração (sem reflexão interna total)
-            if refraction_dir is not None:
-                # O raio de refração começa ligeiramente dentro do objeto
-                refraction_ray = Ray(hit_point - world_normal * obj_hit.shadow_bias, refraction_dir)
-                color_from_refraction = self.trace(refraction_ray, depth - 1)
-                refracted_color = multiply_colors_componentwise(color_from_refraction, material.transparency_color)
+            # Adicionamos também o brilho especular da superfície do vidro
+            specular_highlights = self.shade(obj_hit, hit_point, world_normal, ray)
+            # (Ignoramos o difuso/ambiente do shade, pegando só o especular - uma simplificação)
+            final_color = add_colors(add_colors(reflected_color, refracted_color), (specular_highlights[0]*0.1, specular_highlights[1]*0.1, specular_highlights[2]*0.1))
 
-        # Combina a cor local com as cores refletida e refratada
-        final_color = add_colors(add_colors(local_color, reflected_color), refracted_color)
+        else:
+            # LÓGICA PARA OBJETOS OPACOS (como antes)
+            # A cor vem da iluminação local (Phong) + reflexo de espelho
+            local_color = self.shade(obj_hit, hit_point, world_normal, ray)
+            
+            reflected_color = (0, 0, 0)
+            if sum(material.reflection_color) > 0:
+                reflection_dir = ray.direction.reflect(world_normal)
+                reflection_ray = Ray(hit_point + world_normal * obj_hit.shadow_bias, reflection_dir)
+                color_from_reflection = self.trace(reflection_ray, depth - 1)
+                reflected_color = multiply_colors_componentwise(color_from_reflection, material.reflection_color)
+
+            final_color = add_colors(local_color, reflected_color)
+
+        # --- FIM DA LÓGICA CORRIGIDA ---
+
         return (min(255, final_color[0]), min(255, final_color[1]), min(255, final_color[2]))
     
     def render(self) -> 'Image':

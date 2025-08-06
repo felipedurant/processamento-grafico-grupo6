@@ -93,16 +93,20 @@ class Vector:
         k = 1 - etai_over_etat ** 2 * (1 - cosi ** 2)
         return Vector(0, 0, 0) if k < 0 else etai_over_etat * self + (etai_over_etat * cosi - sqrt(k)) * normal
 
-    def fresnel(self, normal, refractive_index):
-        """ Calcula o coeficiente de Fresnel para refracao e reflexao baseado no indice de refracao. """
-        cosi = fabs(self.clamp_value(self.dot_product(normal), -1, 1))
-        sint = self.AIR_REFRACTIVE_INDEX / refractive_index * sqrt(max(0, 1 - cosi ** 2))
-        if sint >= 1:
-            return 1
-        cost = sqrt(max(0, 1 - sint ** 2))
-        rs = ((refractive_index * cosi) - (self.AIR_REFRACTIVE_INDEX * cost)) / ((refractive_index * cosi) + (self.AIR_REFRACTIVE_INDEX * cost))
-        rp = ((self.AIR_REFRACTIVE_INDEX * cosi) - (refractive_index * cost)) / ((self.AIR_REFRACTIVE_INDEX * cosi) + (refractive_index * cost))
-        return (rs ** 2 + rp ** 2) / 2
+    def fresnel(self, normal: 'Vector', etai: float, etat: float) -> float:
+        """
+        Calcula a refletância de Fresnel usando a Aproximação de Schlick.
+        Retorna a proporção de luz que é refletida (um valor entre 0 e 1).
+        """
+        # self é o vetor de direção do raio incidente
+        cosi = -self.dot_product(normal)
+        cosi = max(-1.0, min(1.0, cosi)) # Garante que o cosseno está no intervalo [-1, 1]
+
+        # R0: Refletância em incidência normal (quando o raio atinge de frente)
+        r0 = ((etai - etat) / (etai + etat)) ** 2
+        
+        # Aproximação de Schlick para outros ângulos
+        return r0 + (1 - r0) * ((1 - cosi) ** 5)
 
 
 ### Classe "Vector"
